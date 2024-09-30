@@ -1,79 +1,76 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class SphereConstructor : MonoBehaviour
 {
+    [SerializeField]
+    private float radius = 1f;
 
     [SerializeField]
-    private float radius = 1;
+    private int m = 24; // Number of meridians (longitude lines)
 
     [SerializeField]
-    private int m = 3; // Le nombre de méridiens
+    private int p = 12; // Number of parallels (latitude lines)
 
-    [SerializeField]
-    private int p = 2; // Le nombre de paralleles
-
-    // Start is called before the first frame update
     void Start()
     {
-        // Minimum pour des 
         if (m < 3) m = 3;
         if (p < 2) p = 2;
 
-        Vector3 N = new Vector3(0, 0, radius); // Pole nord
-        Vector3 S = new Vector3(0, 0, - radius); // Pole sud
+        Vector3 N = new Vector3(0, 0, radius); // North pole
+        Vector3 S = new Vector3(0, 0, -radius); // South pole
 
         Mesh mesh = GetComponent<MeshFilter>().mesh;
-
         mesh.Clear();
 
         List<Vector3> vertices = new();
         List<int> triangles = new();
 
-        // Parrallèles 
-
-        for (int j = 0; j < p; j++) // Paralleles
+        // Calculate vertices
+        for (int j = 0; j <= p; j++) // Parallels
         {
-            float phi_i =j * Mathf.PI / p;
-            for (int i = 0; i < m; i++) // Meridiens sur chaque paralleles
-            {
-                float thau_i = 2 * Mathf.PI * i / m; // Angle
+            float phi = Mathf.PI * j / p; // Latitude angle
 
-                vertices.Add(new Vector3(radius * Mathf.Cos(thau_i), radius - phi_i, radius * Mathf.Sin(thau_i)));
+            for (int i = 0; i < m; i++) // Meridians
+            {
+                float theta = 2 * Mathf.PI * i / m; // Longitude angle
+                float x = radius * Mathf.Sin(phi) * Mathf.Cos(theta);
+                float y = radius * Mathf.Cos(phi);
+                float z = radius * Mathf.Sin(phi) * Mathf.Sin(theta);
+
+                vertices.Add(new Vector3(x, y, z));
             }
         }
 
-        // Adding south and north pole
+        // Add north and south poles
         vertices.Add(N);
         vertices.Add(S);
 
-        // Triangles
-
-        for(int i = 0; i < p; i++)
+        // Calculate triangles
+        for (int j = 0; j < p; j++)
         {
-            for(int j = 0;j < m; j++)
+            for (int i = 0; i < m; i++)
             {
-                triangles.Add(i * j);
-                triangles.Add((i + 1) * j);
-                triangles.Add(i * j + 1);
+                int current = j * m + i;
+                int next = (i + 1) % m + j * m;
 
-                triangles.Add(i * j);
-                triangles.Add(i * j + 1);
-                triangles.Add((i + 1) * j + 1);
+                triangles.Add(current);
+                triangles.Add(next);
+                triangles.Add(current + m);
+
+                triangles.Add(next);
+                triangles.Add(next + m);
+                triangles.Add(current + m);
             }
         }
 
-
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
+        mesh.RecalculateNormals(); // Recalculate normals for lighting
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        // Any updates or interactions can be handled here
     }
 }
