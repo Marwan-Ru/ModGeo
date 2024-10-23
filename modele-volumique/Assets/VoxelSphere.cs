@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 public enum OperatorType
 {
-    Intersection, Union
+    Intersection, Union, XOR
 }
 
 public class VoxelSphere : MonoBehaviour
@@ -150,6 +150,40 @@ public class VoxelSphere : MonoBehaviour
         
     }
     
+    void XorOctree(List<Octree> octrees)
+    {
+        foreach (var octree in octrees)
+        {
+            GetLeafs(octree);
+        }
+
+        
+        foreach (var leaf in _leafs)
+        {
+            
+
+            var (pmin, pmax) = leaf.GetBoundingBox();
+            Vector3 center = (pmin + pmax) * 0.5f;
+            
+            bool isInsideAll = (center - centers[0]).magnitude < radiuses[0];
+            
+            for (int i = 1; i < radiuses.Count; i++)
+            {
+                isInsideAll = isInsideAll ^ (center - centers[i]).magnitude < radiuses[i];
+            }
+            
+            
+            if (isInsideAll)
+            {
+                GameObject c = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                c.transform.position = center;
+                c.transform.localScale *= (pmax - pmin).x;
+            }
+            
+        }
+        
+    }
+    
     void Start()
     {
         for (int i = 0; i < radiuses.Count; i++)
@@ -163,6 +197,9 @@ public class VoxelSphere : MonoBehaviour
         if (op == OperatorType.Intersection)
         {
             IntersectionOctree(_octrees);
+        } else if (op == OperatorType.XOR)
+        {
+            XorOctree(_octrees);
         }
         
     }
