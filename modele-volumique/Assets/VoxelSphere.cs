@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,6 +10,13 @@ using UnityEngine.UIElements;
  * Tout est paramétrable
  */
 
+
+struct SphereData
+{
+    public float Radius;
+    public Vector3 Center;
+}
+
 public class VoxelSphere : MonoBehaviour
 {
     [SerializeField] private int depth = 3;
@@ -16,22 +24,24 @@ public class VoxelSphere : MonoBehaviour
     
     [SerializeField] private List<float> radiuses;
     [SerializeField] private List<Vector3> centers ;
+    
+    private List<Octree> _octrees = new();
 
-    private bool AABBIsOnSurface((Vector3, Vector3) boundingBox)
+    private bool AABBIsOnSurface((Vector3, Vector3) boundingBox, int sphereindice)
     {
         var (pmin, pmax) = boundingBox;
         float dmin = 0;
         float dmax = 0;
-        float r2 = radiuses[0] * radiuses[0];
+        float r2 = radiuses[sphereindice] * radiuses[sphereindice];
         for(var i = 0; i < 3; i++ )
         {
-            var a = Mathf.Pow(centers[0][i] - pmin[i], 2);
-            var b = Mathf.Pow(centers[0][i] - pmax[i], 2);
+            var a = Mathf.Pow(centers[sphereindice][i] - pmin[i], 2);
+            var b = Mathf.Pow(centers[sphereindice][i] - pmax[i], 2);
             dmax += Mathf.Max(a, b);
-            if (centers[0][i] < pmin[i])
+            if (centers[sphereindice][i] < pmin[i])
             {
                 dmin += a;
-            }else if (centers[0][i] > pmax[i])
+            }else if (centers[sphereindice][i] > pmax[i])
             {
                 dmin += b;
             }
@@ -39,12 +49,12 @@ public class VoxelSphere : MonoBehaviour
         return (dmin <= r2 && dmax >= r2);
     }
     
-    private Octree SubdivideTree((Vector3, Vector3) boundingBox, int n = 0)
+    private Octree SubdivideTree((Vector3, Vector3) boundingBox, int sphereindice, int n = 0)
     {
         var (pmin, pmax) = boundingBox;
         Vector3 center = (pmin + pmax) * 0.5f;
         
-        if (n < depth && (AABBIsOnSurface(boundingBox) || !adaptive)) // We subdivide
+        if (n < depth && (AABBIsOnSurface(boundingBox, sphereindice) || !adaptive)) // We subdivide
         {
             // Creation des points nécessaires a la subdivision
             Vector3 A = new Vector3(center.x, pmin.y, pmin.z);
@@ -62,20 +72,20 @@ public class VoxelSphere : MonoBehaviour
             
             List<Octree> childs = new();
             
-            childs.Add(SubdivideTree( (pmin: pmin, center), n+1 ));
-            childs.Add(SubdivideTree( (A, B), n+1 ));
-            childs.Add(SubdivideTree( (C, D), n+1 ));
-            childs.Add(SubdivideTree( (E, F), n+1 ));
-            childs.Add(SubdivideTree( (K, L), n+1 ));
-            childs.Add(SubdivideTree( (G, H), n+1 ));
-            childs.Add(SubdivideTree( (I,J), n+1 ));
-            childs.Add(SubdivideTree( (center, pmax: pmax), n+1 ));
+            childs.Add(SubdivideTree( (pmin, center), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (A, B), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (C, D), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (E, F), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (K, L), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (G, H), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (I,J), sphereindice, n+1 ));
+            childs.Add(SubdivideTree( (center, pmax), sphereindice, n+1 ));
 
             return new Octree(childs, boundingBox);
         }
         // Max depth or not on the edge (if adaptive) 
         
-        bool isInside = (center - centers[0]).magnitude < radiuses[0];
+        bool isInside = (center - centers[sphereindice]).magnitude < radiuses[sphereindice];
 
         if (isInside)
         {
@@ -90,14 +100,13 @@ public class VoxelSphere : MonoBehaviour
     
     void Start()
     {
-        centers.Add(transform.position);
-        radiuses.Add(5);
-        
-        Vector3 pmin = centers[0] - radiuses[0] * new Vector3(1, 1, 1);
-        Vector3 pmax = centers[0] + radiuses[0] * new Vector3(1, 1, 1);
-        
-        Octree sphereOctree = SubdivideTree((pmin, pmax));
+        for (int i = 0; i < radiuses.Count; i++)
+        {
+            Vector3 pmin = centers[i] - radiuses[i] * new Vector3(1, 1, 1);
+            Vector3 pmax = centers[i] + radiuses[i] * new Vector3(1, 1, 1);
 
+            _octrees.Add(SubdivideTree((pmin, pmax), i));
+        }
     }
 
     // Update is called once per frame

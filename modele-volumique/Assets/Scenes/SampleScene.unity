@@ -337,10 +337,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9ccf5b5f06e95248aeb0f9ab05e4b91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m: 20
-  p: 20
-  depth: 6
+  depth: 4
   adaptive: 1
+  radiuses:
+  - 5
+  - 5
+  centers:
+  - {x: 0, y: 0, z: 0}
+  - {x: 15, y: 0, z: 0}
 --- !u!4 &1168778390
 Transform:
   m_ObjectHideFlags: 0
