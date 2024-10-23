@@ -10,11 +10,9 @@ using UnityEngine.UIElements;
  * Tout est paramétrable
  */
 
-
-struct SphereData
+public enum OperatorType
 {
-    public float Radius;
-    public Vector3 Center;
+    Intersection, Union
 }
 
 public class VoxelSphere : MonoBehaviour
@@ -24,9 +22,13 @@ public class VoxelSphere : MonoBehaviour
     
     [SerializeField] private List<float> radiuses;
     [SerializeField] private List<Vector3> centers ;
+
+    [SerializeField] private OperatorType op;
     
     private List<Octree> _octrees = new();
 
+    private List<Octree> _leafs = new();
+    
     private bool AABBIsOnSurface((Vector3, Vector3) boundingBox, int sphereindice)
     {
         var (pmin, pmax) = boundingBox;
@@ -87,7 +89,7 @@ public class VoxelSphere : MonoBehaviour
         
         bool isInside = (center - centers[sphereindice]).magnitude < radiuses[sphereindice];
 
-        if (isInside)
+        if (isInside && op == OperatorType.Union)
         {
            GameObject c = GameObject.CreatePrimitive(PrimitiveType.Cube);
            c.transform.position = center;
@@ -95,6 +97,56 @@ public class VoxelSphere : MonoBehaviour
         }
         
         return new Octree(isInside, boundingBox);
+        
+    }
+
+    void GetLeafs(Octree octree)
+    {
+
+        if (octree.IsLeaf())
+        {
+            _leafs.Add(octree);
+        }
+        else
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                GetLeafs(octree.GetChild(i));
+            }
+        }
+        
+    }
+    
+    void IntersectionOctree(List<Octree> octrees)
+    {
+        foreach (var octree in octrees)
+        {
+            GetLeafs(octree);
+        }
+
+        
+        foreach (var leaf in _leafs)
+        {
+            bool isInsideAll = true;
+
+            var (pmin, pmax) = leaf.GetBoundingBox();
+            Vector3 center = (pmin + pmax) * 0.5f;
+            
+            
+            for (int i = 0; i < radiuses.Count; i++)
+            {
+                isInsideAll = isInsideAll && (center - centers[i]).magnitude < radiuses[i];
+            }
+            
+            
+            if (isInsideAll)
+            {
+                GameObject c = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                c.transform.position = center;
+                c.transform.localScale *= (pmax - pmin).x;
+            }
+            
+        }
         
     }
     
@@ -107,6 +159,12 @@ public class VoxelSphere : MonoBehaviour
 
             _octrees.Add(SubdivideTree((pmin, pmax), i));
         }
+
+        if (op == OperatorType.Intersection)
+        {
+            IntersectionOctree(_octrees);
+        }
+        
     }
 
     // Update is called once per frame
