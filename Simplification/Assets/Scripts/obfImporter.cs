@@ -14,7 +14,7 @@ public class obfImporter : MonoBehaviour
     int nbFacettes;
     int nbAretes;
 
-    /*void exportToObj(Vector3[] vertices, int[] triangles, Vector3[] normals)
+    void exportToObj(Vector3[] vertices, int[] triangles, Vector3[] normals)
     {
         
     
@@ -45,7 +45,7 @@ public class obfImporter : MonoBehaviour
             }
         }
     
-    }*/
+    }
 
     // Start is called before the first frame update
     void Awake()
@@ -179,7 +179,7 @@ public class obfImporter : MonoBehaviour
         // On met le modele dans le mesh
         mesh.vertices = arrVertices;
         mesh.triangles = triangles.ToArray();
-        mesh.normals = vertexNormal;
+        //mesh.normals = vertexNormal;
 
         // Export obj
         // exportToObj(arrVertices, triangles.ToArray(), vertexNormal);

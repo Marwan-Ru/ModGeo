@@ -11,15 +11,17 @@ using UnityEngine.UIElements;
 public class Octree
 {
     bool _isLeaf = false;
+    bool _hasRepresentative = false;
     private List<Octree> _childrens;
     (Vector3, Vector3) _boundingBox;
-    private List<Vector3> _vertices = new List<Vector3>();
+    private List<int> _verticesIndices = new List<int>();
+    private int _representativeIndice;
 
-    public Octree((Vector3, Vector3) octreeRect, List<Vector3> vertices)
+    public Octree((Vector3, Vector3) octreeRect, List<int> vertices)
     {
         _boundingBox = octreeRect;
         _isLeaf = true;
-        _vertices = vertices;
+        _verticesIndices = vertices;
     }
 
     public Octree(List<Octree> childrens, (Vector3, Vector3) octreeRect)
@@ -31,7 +33,12 @@ public class Octree
     {
         return _isLeaf;
     }
-
+    
+    public bool HasRepresentative()
+    {
+        return _hasRepresentative;
+    }
+    
     public (Vector3, Vector3) GetBoundingBox()
     {
         return _boundingBox;
@@ -42,8 +49,19 @@ public class Octree
         return _childrens[index];
     }
 
-    public List<Vector3> GetVertices()
+    public List<int> GetVerticesIndices()
     {
-        return _vertices;
+        return _verticesIndices;
+    }
+
+    public void SetRepresentative(int i)
+    {
+        _hasRepresentative = true;
+        _representativeIndice = i;
+    }
+
+    public int GetRepresentativeIndice()
+    {
+        return _representativeIndice;
     }
 }

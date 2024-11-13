@@ -316,6 +316,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -1992642530279369633, guid: 3abf96cd1287ecf438e5df3c9058a264, type: 3}
+      propertyPath: depth
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2381947866743746172, guid: 3abf96cd1287ecf438e5df3c9058a264, type: 3}
+      propertyPath: path
+      value: Assets/offMeshes/bunny.off
+      objectReference: {fileID: 0}
     - target: {fileID: 3385235679405592443, guid: 3abf96cd1287ecf438e5df3c9058a264, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
