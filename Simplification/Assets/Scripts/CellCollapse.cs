@@ -7,6 +7,9 @@ using UnityEngine;
 public class CellCollapse : MonoBehaviour
 {
     [SerializeField] private int depth; // the higher this value, the higher the definition
+
+    [SerializeField] private bool showRepresentative = false;
+    
     
     private Mesh _mesh;
     private List<Vector3> _vertices;
@@ -14,6 +17,8 @@ public class CellCollapse : MonoBehaviour
     
     private List<Vector3> _newVertices = new();
     private List<int> _newTriangles = new();
+    
+    private GameObject sphere;
     private Octree SubdivideTree((Vector3, Vector3) boundingBox, int n = 0)
     {
         var (pmin, pmax) = boundingBox;
@@ -85,6 +90,8 @@ public class CellCollapse : MonoBehaviour
             mean /= octree.GetVerticesIndices().Count;
             _newVertices.Add(mean);
             octree.SetRepresentative(_newVertices.Count - 1);
+            
+            if(showRepresentative) Instantiate(sphere, mean, Quaternion.identity);
         }
         
     }
@@ -108,7 +115,7 @@ public class CellCollapse : MonoBehaviour
                     {
                         if (_triangles[i] == t)
                         {
-                            _triangles[i] = octree.GetRepresentativeIndice() + 1000000000;
+                            _newTriangles[i] = octree.GetRepresentativeIndice();
                         }
                     }
                 }
@@ -122,7 +129,13 @@ public class CellCollapse : MonoBehaviour
         _mesh = GetComponent<MeshFilter>().mesh;
         _vertices = _mesh.vertices.ToList();
         _triangles = _mesh.triangles.ToList();
-
+        _newTriangles = _triangles;
+        
+        List<int> _newNewTriangles = new();
+        
+        sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        
         Vector3 pmin = _vertices[0];
         Vector3 pmax = _vertices[1];
 
@@ -133,34 +146,29 @@ public class CellCollapse : MonoBehaviour
             pmin = Vector3.Min(v, pmin);
         }
 
+        for (int i = 0; i < _newTriangles.Count; i += 3)
+        {
+            // Cette abomination cleanup la liste
+            if (_newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i + 1] == _newTriangles[i + 2]
+                || _newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i] == _newTriangles[i + 2]
+                || _newTriangles[i + 2] == _newTriangles[i] && _newTriangles[i + 1] == _newTriangles[i + 2]
+                || _newTriangles[i] >= _newVertices.Count || _newTriangles[i + 1] >= _newVertices.Count || _newTriangles[i + 2] >= _newVertices.Count) continue;
+            
+            _newNewTriangles.Add(_newTriangles[i]);
+            _newNewTriangles.Add(_newTriangles[i+1]);
+            _newNewTriangles.Add(_newTriangles[i+2]);
+        }
+        
         Octree subdivision = SubdivideTree((pmin, pmax));
         Collapse(subdivision);
         BuildTriangles(subdivision);
-
-        // On remet aux vrais indices
-        for (int i = 0; i < _triangles.Count; i++)
-        {
-            if (_triangles[i] < 0) print("????");
-            _triangles[i] -= 1000000000;
-            if (_triangles[i] < 0) print("bizarre");
-        }
         
-        foreach (var t in _triangles)
-        {
-            if (t >= _newVertices.Count || t < 0) print(t);
-        }
         
         _mesh.Clear();
         
         _mesh.vertices = _newVertices.ToArray();
-        _mesh.triangles = _triangles.ToArray();
+        _mesh.triangles = _newNewTriangles.ToArray();
         
         _mesh.RecalculateNormals();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
