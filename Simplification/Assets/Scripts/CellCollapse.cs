@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -127,14 +128,19 @@ public class CellCollapse : MonoBehaviour
     void Start()
     {
         _mesh = GetComponent<MeshFilter>().mesh;
-        _vertices = _mesh.vertices.ToList();
-        _triangles = _mesh.triangles.ToList();
+        var obf = GetComponent<obfImporter>();
+        _vertices = obf.arrVertices.ToList();
+        _triangles = obf.triangles.ToList();
         _newTriangles = _triangles;
         
         List<int> _newNewTriangles = new();
+
+        if (showRepresentative)
+        {
+            sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f); 
+        }
         
-        sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         
         Vector3 pmin = _vertices[0];
         Vector3 pmax = _vertices[1];
@@ -145,23 +151,28 @@ public class CellCollapse : MonoBehaviour
             pmax = Vector3.Max(v, pmax);
             pmin = Vector3.Min(v, pmin);
         }
-
-        for (int i = 0; i < _newTriangles.Count; i += 3)
-        {
-            // Cette abomination cleanup la liste
-            if (_newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i + 1] == _newTriangles[i + 2]
-                || _newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i] == _newTriangles[i + 2]
-                || _newTriangles[i + 2] == _newTriangles[i] && _newTriangles[i + 1] == _newTriangles[i + 2]
-                || _newTriangles[i] >= _newVertices.Count || _newTriangles[i + 1] >= _newVertices.Count || _newTriangles[i + 2] >= _newVertices.Count) continue;
-            
-            _newNewTriangles.Add(_newTriangles[i]);
-            _newNewTriangles.Add(_newTriangles[i+1]);
-            _newNewTriangles.Add(_newTriangles[i+2]);
-        }
         
         Octree subdivision = SubdivideTree((pmin, pmax));
         Collapse(subdivision);
         BuildTriangles(subdivision);
+        
+        for (int i = 0; i < _newTriangles.Count; i += 3)
+        {
+            // Cleaning up duplicates and eventual out of range vertices
+            if (_newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i + 1] == _newTriangles[i + 2]
+                || _newTriangles[i] == _newTriangles[i + 1] && _newTriangles[i] == _newTriangles[i + 2]
+                || _newTriangles[i + 2] == _newTriangles[i] && _newTriangles[i + 1] == _newTriangles[i + 2]
+                || _newTriangles[i] >= _newVertices.Count || _newTriangles[i + 1] >= _newVertices.Count ||
+                _newTriangles[i + 2] >= _newVertices.Count)
+            {
+                Debug.Log(_newTriangles[i] + " " + _newTriangles[i + 1] + " " + _newTriangles[i + 2]);
+                continue;
+            }
+            
+            _newNewTriangles.Add(_newTriangles[i]);
+            _newNewTriangles.Add(_newTriangles[i+1]);
+            _newNewTriangles.Add(_newTriangles[i+2]);
+        } 
         
         
         _mesh.Clear();

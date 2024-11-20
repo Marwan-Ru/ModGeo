@@ -14,6 +14,8 @@ public class obfImporter : MonoBehaviour
     int nbFacettes;
     int nbAretes;
 
+    public Vector3[] arrVertices;
+    public List<int> triangles = new();
     void exportToObj(Vector3[] vertices, int[] triangles, Vector3[] normals)
     {
         
@@ -54,7 +56,6 @@ public class obfImporter : MonoBehaviour
         mesh.Clear();
 
         List<Vector3> verticesList = new();
-        List<int> triangles = new();
 
         const Int32 BufferSize = 128;
         using (var fileStream = File.OpenRead(path))
@@ -110,7 +111,7 @@ public class obfImporter : MonoBehaviour
 
         Vector3 gravCenter = new(0, 0, 0);
         Vector3 biggest = new(0, 0, 0);
-        var arrVertices = verticesList.ToArray();
+        arrVertices = verticesList.ToArray();
 
         //Calcul du centre de gravit� afin de centrer le mod�le et recherche de la plus grande coordonn�e (en absolue)
         foreach (Vector3 v in arrVertices)
@@ -177,9 +178,9 @@ public class obfImporter : MonoBehaviour
         }
 
         // On met le modele dans le mesh
-        mesh.vertices = arrVertices;
-        mesh.triangles = triangles.ToArray();
-        //mesh.normals = vertexNormal;
+        // mesh.vertices = arrVertices;
+        // mesh.triangles = triangles.ToArray();
+        // mesh.normals = vertexNormal;
 
         // Export obj
         // exportToObj(arrVertices, triangles.ToArray(), vertexNormal);
