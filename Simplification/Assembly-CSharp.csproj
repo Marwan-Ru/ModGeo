@@ -49,6 +49,7 @@
     <Compile Include="Assets\Scripts\Octree.cs" />
     <Compile Include="Assets\Scripts\obfImporter.cs" />
     <Compile Include="Assets\Scripts\CellCollapse.cs" />
+    <Compile Include="Assets\Scripts\CubiqueHermite.cs" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.45f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

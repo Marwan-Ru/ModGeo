@@ -1,24 +1,15 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.TerrainTools;
 using UnityEngine;
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
 public class Chaikin : MonoBehaviour
 {
     [Range(0, 10)]
-    [SerializeField] private int subdivisions = 0;
+    [SerializeField] private int subdivisions;
 
     [SerializeField] private List<Vector3> bounds;
 
     private List<Vector3> _points;
-    
-    // Start is called before the first frame update
-    private void Start()
-    {
-        
-    }
 
     private void OnDrawGizmos()
     {
@@ -60,9 +51,4 @@ public class Chaikin : MonoBehaviour
         }
     }
     
-    // Update is called once per frame
-    private void Update()
-    {
-        
-    }
 }
