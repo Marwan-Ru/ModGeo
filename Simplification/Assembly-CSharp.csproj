@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Chaikin.cs" />
+    <Compile Include="Assets\Scripts\Bezier.cs" />
     <Compile Include="Assets\Scripts\Octree.cs" />
     <Compile Include="Assets\Scripts\obfImporter.cs" />
     <Compile Include="Assets\Scripts\CellCollapse.cs" />
