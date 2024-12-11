@@ -44,9 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c2f60b02f102764eb44f21cd56a03d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  subdivisions: 0
+  subdivisions: 2
   bounds:
   - {x: 0, y: 0, z: 0}
   - {x: 1, y: 0, z: 0}
-  - {x: 0, y: 0, z: 1}
   - {x: 2, y: 0, z: 1}
+  - {x: 0, y: 0, z: 1}
